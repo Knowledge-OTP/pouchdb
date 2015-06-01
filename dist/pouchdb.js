@@ -1,4 +1,4 @@
-//    PouchDB 3.4.0
+//    PouchDB 3.4.0-zinkerz
 //    
 //    (c) 2012-2015 Dale Harvey and the PouchDB team
 //    PouchDB may be freely distributed under the Apache license, version 2.0.
@@ -4263,7 +4263,8 @@ function createOpenDBFunction() {
   if (typeof openDatabase !== 'undefined') {
     return function openDB(opts) {
       // Traditional WebSQL API
-      return openDatabase(opts.name, opts.version, opts.description, opts.size);
+      var dbName = opts.targetDbName || opts.name;
+      return openDatabase(dbName, opts.version, opts.description, opts.size);
     };
   }
 }
@@ -4411,6 +4412,7 @@ function WebSqlPouch(opts, callback) {
     description: api._name,
     size: size,
     location: opts.location,
+    targetDbName: opts.targetDbName,
     createFromLocation: opts.createFromLocation
   });
   if (!db) {
@@ -9109,7 +9111,7 @@ exports.safeJsonStringify = function safeJsonStringify(json) {
 
 }).call(this,_dereq_(40),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"17":17,"18":18,"19":19,"20":20,"21":21,"22":22,"24":24,"27":27,"30":30,"37":37,"39":39,"40":40,"41":41,"44":44,"48":48,"65":65,"66":66,"75":75}],36:[function(_dereq_,module,exports){
-module.exports = "3.4.0";
+module.exports = "3.4.0-zinkerz";
 
 },{}],37:[function(_dereq_,module,exports){
 'use strict';
@@ -9538,17 +9540,10 @@ exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
-
-/**
- * Use chrome.storage.local if we are in an app
- */
-
-var storage;
-
-if (typeof chrome !== 'undefined' && typeof chrome.storage !== 'undefined')
-  storage = chrome.storage.local;
-else
-  storage = localstorage();
+exports.storage = 'undefined' != typeof chrome
+               && 'undefined' != typeof chrome.storage
+                  ? chrome.storage.local
+                  : localstorage();
 
 /**
  * Colors.
@@ -9656,9 +9651,9 @@ function log() {
 function save(namespaces) {
   try {
     if (null == namespaces) {
-      storage.removeItem('debug');
+      exports.storage.removeItem('debug');
     } else {
-      storage.debug = namespaces;
+      exports.storage.debug = namespaces;
     }
   } catch(e) {}
 }
@@ -9673,7 +9668,7 @@ function save(namespaces) {
 function load() {
   var r;
   try {
-    r = storage.debug;
+    r = exports.storage.debug;
   } catch(e) {}
   return r;
 }
@@ -9941,6 +9936,8 @@ module.exports = function(val, options){
  */
 
 function parse(str) {
+  str = '' + str;
+  if (str.length > 10000) return;
   var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
   if (!match) return;
   var n = parseFloat(match[1]);
@@ -10146,6 +10143,7 @@ function getThen(obj) {
     };
   }
 }
+
 },{"54":54,"55":55,"56":56}],48:[function(_dereq_,module,exports){
 module.exports = exports = _dereq_(49);
 
@@ -10153,6 +10151,7 @@ exports.resolve = _dereq_(53);
 exports.reject = _dereq_(52);
 exports.all = _dereq_(46);
 exports.race = _dereq_(51);
+
 },{"46":46,"49":49,"51":51,"52":52,"53":53}],49:[function(_dereq_,module,exports){
 'use strict';
 
@@ -10187,10 +10186,8 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
     return this;
   }
   var promise = new Promise(INTERNAL);
-
-  
   if (this.state !== states.PENDING) {
-    var resolver = this.state === states.FULFILLED ? onFulfilled: onRejected;
+    var resolver = this.state === states.FULFILLED ? onFulfilled : onRejected;
     unwrap(promise, resolver, this.outcome);
   } else {
     this.queue.push(new QueueItem(promise, onFulfilled, onRejected));
@@ -10228,6 +10225,7 @@ QueueItem.prototype.callRejected = function (value) {
 QueueItem.prototype.otherCallRejected = function (value) {
   unwrap(this.promise, this.onRejected, value);
 };
+
 },{"47":47,"57":57}],51:[function(_dereq_,module,exports){
 'use strict';
 var Promise = _dereq_(49);
@@ -10247,10 +10245,9 @@ function race(iterable) {
     return resolve([]);
   }
 
-  var resolved = 0;
   var i = -1;
   var promise = new Promise(INTERNAL);
-  
+
   while (++i < len) {
     resolver(iterable[i]);
   }
@@ -10269,6 +10266,7 @@ function race(iterable) {
     });
   }
 }
+
 },{"45":45,"47":47,"49":49,"52":52,"53":53}],52:[function(_dereq_,module,exports){
 'use strict';
 
@@ -10355,6 +10353,7 @@ exports.safely = safelyResolveThenable;
 exports.REJECTED = ['REJECTED'];
 exports.FULFILLED = ['FULFILLED'];
 exports.PENDING = ['PENDING'];
+
 },{}],56:[function(_dereq_,module,exports){
 'use strict';
 

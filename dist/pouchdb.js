@@ -4263,8 +4263,7 @@ function createOpenDBFunction() {
   if (typeof openDatabase !== 'undefined') {
     return function openDB(opts) {
       // Traditional WebSQL API
-      var dbName = opts.targetDbName || opts.name;
-      return openDatabase(dbName, opts.version, opts.description, opts.size);
+      return openDatabase(opts.name, opts.version, opts.description, opts.size);
     };
   }
 }
@@ -4412,7 +4411,7 @@ function WebSqlPouch(opts, callback) {
     description: api._name,
     size: size,
     location: opts.location,
-    targetDbName: opts.targetDbName,
+    sourceDbName: opts.sourceDbName,
     createFromLocation: opts.createFromLocation
   });
   if (!db) {

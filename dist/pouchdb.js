@@ -4271,7 +4271,8 @@ function WebSqlPouch(opts, callback) {
     size: size,
     location: opts.location,
     createFromLocation: opts.createFromLocation,
-    androidDatabaseImplementation: opts.androidDatabaseImplementation
+    androidDatabaseImplementation: opts.androidDatabaseImplementation,
+    sourceDbName: opts.sourceDbName
   });
   if (!db) {
     return callback(errors.error(errors.UNKNOWN_ERROR));
